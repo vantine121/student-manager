@@ -7,7 +7,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-// THÊM LẠI PROPS: classes
 export default function ExcelTable({ students, currentUser, classes }: { students: any[], currentUser: any, classes: any[] }) {
   const [rules, setRules] = useState<any[]>([])
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -16,7 +15,6 @@ export default function ExcelTable({ students, currentUser, classes }: { student
   const [loading, setLoading] = useState(false)
   
   const [filterGroup, setFilterGroup] = useState(0)
-  // State lưu lớp đang chọn (Cho Admin)
   const [filterClass, setFilterClass] = useState('')
 
   useEffect(() => {
@@ -90,11 +88,11 @@ export default function ExcelTable({ students, currentUser, classes }: { student
   }
 
   const getRankBadge = (pts: number) => {
-    if (pts >= 400) return <span className="text-[10px] font-bold text-yellow-600 bg-yellow-100 px-1 rounded border border-yellow-300">👑 TRÙM CUỐI</span>
-    if (pts >= 300) return <span className="text-[10px] font-bold text-purple-600 bg-purple-100 px-1 rounded border border-purple-300">🔮 THẦN ĐỒNG</span>
-    if (pts >= 200) return <span className="text-[10px] font-bold text-pink-600 bg-pink-100 px-1 rounded border border-pink-300">🧠 HỌC BÁ</span>
-    if (pts >= 100) return <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-1 rounded border border-blue-300">🌟 SAO SÁNG</span>
-    return <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-1 rounded border border-gray-300">🌱 TÂN BINH</span>
+    if (pts >= 400) return <span className="text-[9px] font-bold text-yellow-600 bg-yellow-100 px-1 rounded border border-yellow-300">TRÙM CUỐI</span>
+    if (pts >= 300) return <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1 rounded border border-purple-300">THẦN ĐỒNG</span>
+    if (pts >= 200) return <span className="text-[9px] font-bold text-pink-600 bg-pink-100 px-1 rounded border border-pink-300">HỌC BÁ</span>
+    if (pts >= 100) return <span className="text-[9px] font-bold text-blue-600 bg-blue-100 px-1 rounded border border-blue-300">SAO SÁNG</span>
+    return <span className="text-[9px] font-bold text-gray-500 bg-gray-100 px-1 rounded border border-gray-300">TÂN BINH</span>
   }
   
   const getRoleBadge = (student: any) => {
@@ -103,21 +101,15 @@ export default function ExcelTable({ students, currentUser, classes }: { student
     return <span className="block text-[9px] font-bold text-gray-400 bg-gray-50 border border-gray-200 px-1 rounded w-fit mt-0.5">TỔ {student.group_number}</span>
   }
 
-  // --- LOGIC LỌC HIỂN THỊ ---
   const displayedStudents = students.filter(student => {
-    // 1. Lọc theo Lớp (Chỉ dùng khi Admin chọn lớp)
     if (filterClass && student.class_name !== filterClass) return false
-    
-    // 2. Lọc theo Tổ
     if (filterGroup !== 0 && student.group_number !== filterGroup) return false
-    
     return true
   })
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col h-[75vh]">
       
-      {/* THANH CÔNG CỤ */}
       <div className="p-4 bg-blue-50 border-b border-blue-200 flex flex-wrap gap-3 items-center justify-between shrink-0">
         <div className="flex flex-wrap gap-2 items-center">
           <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border-2 border-blue-200 p-1.5 rounded-lg font-bold text-gray-700 text-sm outline-none" />
@@ -126,7 +118,6 @@ export default function ExcelTable({ students, currentUser, classes }: { student
             <option value="Chiều">🌤️ Chiều</option>
           </select>
           
-          {/* MENU CHỌN LỚP (ĐÃ QUAY TRỞ LẠI) */}
           {currentUser.role === 'SUPER_ADMIN' && (
              <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)} className="border-2 border-purple-300 bg-purple-50 p-1.5 rounded-lg font-bold text-purple-800 text-sm outline-none">
                <option value="">🏫 Tất cả lớp</option>
@@ -147,7 +138,6 @@ export default function ExcelTable({ students, currentUser, classes }: { student
         )}
       </div>
 
-      {/* BẢNG EXCEL */}
       <div className="overflow-auto flex-1 relative custom-scrollbar">
         <table className="w-full text-sm text-left border-collapse">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-40 shadow-md">
@@ -167,11 +157,14 @@ export default function ExcelTable({ students, currentUser, classes }: { student
                 <tr key={student.id} className={`border-b hover:bg-yellow-50 transition-colors h-16 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
                   <td className="px-3 border-r font-medium text-gray-900 sticky left-0 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-inherit align-middle">
                     <div className="flex flex-col justify-center gap-0.5">
-                      <div className="flex justify-between items-center w-full"><span className="text-sm font-bold text-blue-900 truncate max-w-[110px]">{student.full_name}</span><span className={`text-xs font-black ${student.current_points >= 100 ? 'text-green-600' : 'text-red-500'}`}>{student.current_points}</span></div>
+                      <div className="flex justify-between items-center w-full">
+                        {/* ĐÃ SỬA: XÓA truncate ĐỂ HIỆN FULL TÊN */}
+                        <span className="text-sm font-bold text-blue-900 whitespace-nowrap">{student.full_name}</span>
+                        <span className={`text-xs font-black ${student.current_points >= 100 ? 'text-green-600' : 'text-red-500'}`}>{student.current_points}đ</span>
+                      </div>
                       <div className="flex flex-col gap-0.5 mt-1">
                         {getRoleBadge(student)}
                         {getRankBadge(student.current_points)}
-                        {/* HIỂN THỊ LỚP CHO DỄ NHÌN NẾU LÀ ADMIN */}
                         {currentUser.role === 'SUPER_ADMIN' && <span className="text-[8px] text-purple-400 font-bold bg-purple-50 border px-1 rounded w-fit">{student.class_name}</span>}
                       </div>
                     </div>
