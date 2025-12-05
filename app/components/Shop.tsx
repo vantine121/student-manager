@@ -152,7 +152,8 @@ export default function Shop({ currentUser, onUpdate }: { currentUser: any, onUp
       </div>
 
       {/* Danh sách hàng */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {/* Mobile: grid-cols-2, Gap nhỏ (gap-2). PC: grid-cols-5, Gap lớn (gap-4) */}
+<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
         {items.map((item) => {
           const finalPrice = calculatePrice(item.cost, item.category)
           const isDiscounted = myCoupons > 0 && item.category !== 'COUPON_VIP'

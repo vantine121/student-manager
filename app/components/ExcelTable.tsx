@@ -13,7 +13,6 @@ export default function ExcelTable({ students, currentUser, classes }: { student
   const [session, setSession] = useState('Sáng')
   const [counts, setCounts] = useState<any>({})
   const [loading, setLoading] = useState(false)
-  
   const [filterGroup, setFilterGroup] = useState(0)
   const [filterClass, setFilterClass] = useState('')
 
@@ -37,10 +36,8 @@ export default function ExcelTable({ students, currentUser, classes }: { student
 
   const handleSubmit = async () => {
     if (!currentUser) return alert("Vui lòng đăng nhập!")
-    
     const hasData = Object.values(counts).some((studentObj: any) => Object.values(studentObj).some((val: any) => val > 0))
     if (!hasData) return alert("Bạn chưa chấm điểm cho ai cả!")
-
     if (!confirm(`Xác nhận lưu sổ ngày ${selectedDate} (${session})?`)) return
 
     setLoading(true)
@@ -49,7 +46,6 @@ export default function ExcelTable({ students, currentUser, classes }: { student
     for (const studentId in counts) {
       const studentCounts = counts[studentId]
       let totalChange = 0
-      
       for (const ruleId in studentCounts) {
         const quantity = studentCounts[ruleId]
         if (quantity > 0) {
@@ -58,47 +54,26 @@ export default function ExcelTable({ students, currentUser, classes }: { student
             const change = rule.points * quantity
             totalChange += change
             await supabase.from('point_logs').insert({
-              student_id: studentId, 
-              actor_id: currentUser.id, 
-              amount: change, 
+              student_id: studentId, actor_id: currentUser.id, amount: change, 
               reason: `[${selectedDate} - ${session}] ${rule.content} (x${quantity})`
             })
           }
         }
       }
-
       if (totalChange !== 0) {
         const { data: current } = await supabase.from('profiles').select('current_points').eq('id', studentId).single()
         await supabase.from('profiles').update({ current_points: (current?.current_points || 0) + totalChange }).eq('id', studentId)
         updateCount++
       }
     }
-
-    alert(`✅ Đã lưu xong cho ${updateCount} bạn!`)
-    setCounts({})
-    window.location.reload()
-    setLoading(false)
+    alert(`✅ Đã lưu xong cho ${updateCount} bạn!`); setCounts({}); window.location.reload(); setLoading(false)
   }
 
   const checkPermission = (targetStudent: any) => {
     if (!currentUser) return false
-    if (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'TEACHER' || currentUser.role === 'MONITOR') return true
+    if (['SUPER_ADMIN', 'TEACHER', 'MONITOR'].includes(currentUser.role)) return true
     if (currentUser.role === 'GROUP_LEADER' && currentUser.group_number === targetStudent.group_number && currentUser.id !== targetStudent.id) return true
     return false
-  }
-
-  const getRankBadge = (pts: number) => {
-    if (pts >= 400) return <span className="text-[9px] font-bold text-yellow-600 bg-yellow-100 px-1 rounded border border-yellow-300">TRÙM CUỐI</span>
-    if (pts >= 300) return <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1 rounded border border-purple-300">THẦN ĐỒNG</span>
-    if (pts >= 200) return <span className="text-[9px] font-bold text-pink-600 bg-pink-100 px-1 rounded border border-pink-300">HỌC BÁ</span>
-    if (pts >= 100) return <span className="text-[9px] font-bold text-blue-600 bg-blue-100 px-1 rounded border border-blue-300">SAO SÁNG</span>
-    return <span className="text-[9px] font-bold text-gray-500 bg-gray-100 px-1 rounded border border-gray-300">TÂN BINH</span>
-  }
-  
-  const getRoleBadge = (student: any) => {
-    if (student.role === 'MONITOR') return <span className="block text-[9px] font-black text-red-600 bg-red-50 border border-red-200 px-1 rounded w-fit mt-0.5">🛡️ LỚP TRƯỞNG</span>
-    if (student.role === 'GROUP_LEADER') return <span className="block text-[9px] font-black text-blue-600 bg-blue-50 border border-blue-200 px-1 rounded w-fit mt-0.5">⭐ TỔ TRƯỞNG T{student.group_number}</span>
-    return <span className="block text-[9px] font-bold text-gray-400 bg-gray-50 border border-gray-200 px-1 rounded w-fit mt-0.5">TỔ {student.group_number}</span>
   }
 
   const displayedStudents = students.filter(student => {
@@ -108,44 +83,48 @@ export default function ExcelTable({ students, currentUser, classes }: { student
   })
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col h-[75vh]">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col h-[70vh] md:h-[75vh]">
       
-      <div className="p-4 bg-blue-50 border-b border-blue-200 flex flex-wrap gap-3 items-center justify-between shrink-0">
-        <div className="flex flex-wrap gap-2 items-center">
-          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border-2 border-blue-200 p-1.5 rounded-lg font-bold text-gray-700 text-sm outline-none" />
-          <select value={session} onChange={(e) => setSession(e.target.value)} className="border-2 border-blue-200 p-1.5 rounded-lg font-bold text-gray-700 text-sm outline-none">
-            <option value="Sáng">☀️ Sáng</option>
-            <option value="Chiều">🌤️ Chiều</option>
+      {/* THANH CÔNG CỤ (Tối ưu Mobile) */}
+      <div className="p-3 bg-blue-50 border-b border-blue-200 flex flex-col md:flex-row gap-3 justify-between shrink-0">
+        <div className="flex flex-wrap gap-2 items-center w-full">
+          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="flex-1 min-w-[130px] border-2 border-blue-200 p-2 rounded-lg font-bold text-gray-700 text-sm outline-none" />
+          <select value={session} onChange={(e) => setSession(e.target.value)} className="w-24 border-2 border-blue-200 p-2 rounded-lg font-bold text-gray-700 text-sm outline-none">
+            <option value="Sáng">Sáng</option><option value="Chiều">Chiều</option>
           </select>
           
           {currentUser.role === 'SUPER_ADMIN' && (
-             <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)} className="border-2 border-purple-300 bg-purple-50 p-1.5 rounded-lg font-bold text-purple-800 text-sm outline-none">
-               <option value="">🏫 Tất cả lớp</option>
-               {classes?.map((c: any) => <option key={c.id} value={c.name}>{c.name}</option>)}
+             <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)} className="flex-1 min-w-[100px] border-2 border-purple-300 bg-purple-50 p-2 rounded-lg font-bold text-purple-800 text-sm outline-none">
+               <option value="">Tất cả lớp</option>{classes?.map((c: any) => <option key={c.id} value={c.name}>{c.name}</option>)}
              </select>
           )}
-
-          <select value={filterGroup} onChange={(e) => setFilterGroup(Number(e.target.value))} className="border-2 border-orange-300 bg-orange-50 p-1.5 rounded-lg font-bold text-orange-800 text-sm outline-none">
-            <option value={0}>👁️ Tất Cả Tổ</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => <option key={num} value={num}>Tổ {num}</option>)}
+          <select value={filterGroup} onChange={(e) => setFilterGroup(Number(e.target.value))} className="flex-1 min-w-[100px] border-2 border-orange-300 bg-orange-50 p-2 rounded-lg font-bold text-orange-800 text-sm outline-none">
+            <option value={0}>Tất Cả Tổ</option>{[1, 2, 3, 4, 5, 6, 7, 8].map(num => <option key={num} value={num}>Tổ {num}</option>)}
           </select>
         </div>
 
-        {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'TEACHER' || currentUser?.role === 'MONITOR' || currentUser?.role === 'GROUP_LEADER') && (
-          <button onClick={handleSubmit} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg shadow-md transition-transform active:scale-95 disabled:opacity-50 text-sm flex items-center gap-2">
+        {(['SUPER_ADMIN', 'TEACHER', 'MONITOR', 'GROUP_LEADER'].includes(currentUser?.role)) && (
+          <button onClick={handleSubmit} disabled={loading} className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-3 rounded-lg shadow-md active:scale-95 text-sm flex items-center justify-center gap-2">
             {loading ? '⏳...' : '💾 LƯU SỔ'}
           </button>
         )}
       </div>
 
+      {/* BẢNG EXCEL */}
       <div className="overflow-auto flex-1 relative custom-scrollbar">
         <table className="w-full text-sm text-left border-collapse">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-40 shadow-md">
             <tr>
-              <th className="px-3 py-2 border-b border-r bg-gray-100 min-w-[200px] sticky left-0 z-50">HỌC SINH ({displayedStudents.length})</th>
+              {/* CỘT TÊN DÍNH CHẶT BÊN TRÁI (Sticky Left) */}
+              <th className="px-2 py-3 border-b border-r bg-gray-50 min-w-[140px] md:min-w-[200px] sticky left-0 z-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                HỌC SINH
+              </th>
               {rules.map(rule => (
-                <th key={rule.id} className={`px-1 py-1 border-b border-r text-center min-w-[100px] align-middle ${rule.type === 'PLUS' ? 'bg-green-50/90 text-green-800' : 'bg-red-50/90 text-red-800'}`}>
-                  <div className="flex flex-col items-center justify-center h-full gap-1 p-1"><span className="text-[10px] font-extrabold leading-tight text-center line-clamp-2">{rule.content}</span><span className={`text-[10px] font-black px-1.5 py-0.5 rounded border shadow-sm ${rule.type === 'PLUS' ? 'bg-white border-green-200' : 'bg-white border-red-200'}`}>{rule.points > 0 ? '+' : ''}{rule.points}</span></div>
+                <th key={rule.id} className={`px-1 py-1 border-b border-r text-center min-w-[90px] md:min-w-[110px] align-middle ${rule.type === 'PLUS' ? 'bg-green-50/90' : 'bg-red-50/90'}`}>
+                  <div className="flex flex-col items-center justify-center h-full gap-1 p-1">
+                    <span className="text-[10px] font-bold leading-tight text-center line-clamp-2 h-8 flex items-center">{rule.content}</span>
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border shadow-sm bg-white`}>{rule.points > 0 ? '+' : ''}{rule.points}</span>
+                  </div>
                 </th>
               ))}
             </tr>
@@ -155,18 +134,14 @@ export default function ExcelTable({ students, currentUser, classes }: { student
               const canEdit = checkPermission(student)
               return (
                 <tr key={student.id} className={`border-b hover:bg-yellow-50 transition-colors h-16 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                  <td className="px-3 border-r font-medium text-gray-900 sticky left-0 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-inherit align-middle">
+                  {/* CỘT TÊN CŨNG DÍNH TRÁI */}
+                  <td className="px-2 border-r font-medium text-gray-900 sticky left-0 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-inherit align-middle">
                     <div className="flex flex-col justify-center gap-0.5">
                       <div className="flex justify-between items-center w-full">
-                        {/* ĐÃ SỬA: XÓA truncate ĐỂ HIỆN FULL TÊN */}
-                        <span className="text-sm font-bold text-blue-900 whitespace-nowrap">{student.full_name}</span>
-                        <span className={`text-xs font-black ${student.current_points >= 100 ? 'text-green-600' : 'text-red-500'}`}>{student.current_points}đ</span>
+                        <span className="text-xs md:text-sm font-bold text-blue-900 truncate max-w-[90px] md:max-w-[130px]">{student.full_name}</span>
+                        <span className={`text-[10px] font-black ${student.current_points >= 100 ? 'text-green-600' : 'text-red-500'}`}>{student.current_points}</span>
                       </div>
-                      <div className="flex flex-col gap-0.5 mt-1">
-                        {getRoleBadge(student)}
-                        {getRankBadge(student.current_points)}
-                        {currentUser.role === 'SUPER_ADMIN' && <span className="text-[8px] text-purple-400 font-bold bg-purple-50 border px-1 rounded w-fit">{student.class_name}</span>}
-                      </div>
+                      <span className="text-[9px] text-gray-400 font-bold border px-1 rounded w-fit">Tổ {student.group_number}</span>
                     </div>
                   </td>
                   {rules.map(rule => {
@@ -175,12 +150,13 @@ export default function ExcelTable({ students, currentUser, classes }: { student
                       <td key={rule.id} className="p-0 border-r text-center align-middle relative">
                         {canEdit ? (
                           <div className="flex items-center justify-center gap-1 w-full h-14">
-                            <button onClick={() => handleCount(student.id, rule.id, -1)} className={`w-6 h-6 rounded-full flex items-center justify-center text-white font-bold transition-opacity ${count > 0 ? 'opacity-100 cursor-pointer hover:bg-opacity-80' : 'opacity-0 cursor-default'} ${rule.type === 'PLUS' ? 'bg-green-400' : 'bg-red-400'}`}>-</button>
-                            <span className={`w-6 text-center font-bold ${count > 0 ? 'text-gray-900 text-lg' : 'text-gray-200 text-sm'}`}>{count > 0 ? count : '0'}</span>
-                            <button onClick={() => handleCount(student.id, rule.id, 1)} className={`w-6 h-6 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:scale-110 transition-transform shadow-sm ${rule.type === 'PLUS' ? 'bg-green-600' : 'bg-red-600'}`}>+</button>
+                            {/* Nút bấm to hơn cho điện thoại */}
+                            <button onClick={() => handleCount(student.id, rule.id, -1)} className={`w-7 h-7 md:w-6 md:h-6 rounded-full flex items-center justify-center text-white font-bold ${count > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'} ${rule.type === 'PLUS' ? 'bg-green-400' : 'bg-red-400'}`}>-</button>
+                            <span className={`w-5 text-center font-bold ${count > 0 ? 'text-gray-900' : 'text-gray-200'}`}>{count > 0 ? count : '0'}</span>
+                            <button onClick={() => handleCount(student.id, rule.id, 1)} className={`w-7 h-7 md:w-6 md:h-6 rounded-full flex items-center justify-center text-white font-bold active:scale-90 transition-transform ${rule.type === 'PLUS' ? 'bg-green-600' : 'bg-red-600'}`}>+</button>
                           </div>
-                        ) : <div className="w-full h-14 flex items-center justify-center bg-gray-100/50 cursor-not-allowed opacity-20"><span className="text-base">🔒</span></div>}
-                    </td>
+                        ) : <div className="w-full h-14 flex items-center justify-center opacity-20 text-xl">🔒</div>}
+                      </td>
                     )
                   })}
                 </tr>
@@ -188,7 +164,6 @@ export default function ExcelTable({ students, currentUser, classes }: { student
             })}
           </tbody>
         </table>
-        {displayedStudents.length === 0 && <div className="text-center p-10 text-gray-400 italic">Không tìm thấy học sinh.</div>}
       </div>
     </div>
   )
