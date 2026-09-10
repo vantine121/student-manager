@@ -15,7 +15,7 @@ export default function UserManagement({ currentUser }: { currentUser: any }) {
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
 
-  const fetchData = async () => {
+  async function fetchData() {
     // --- LOGIC LỌC QUAN TRỌNG ---
     let query = supabase.from('profiles').select('*')
 

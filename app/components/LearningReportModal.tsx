@@ -13,7 +13,7 @@ export default function LearningReportModal({ currentUser, onClose }: { currentU
   const [summary, setSummary] = useState({ plus: 0, minus: 0, total_mistakes: 0, total_good: 0 })
 
   useEffect(() => {
-    const fetchLogs = async () => {
+    async function fetchLogs() {
       // Lấy toàn bộ lịch sử điểm của học sinh này
       const { data } = await supabase
         .from('point_logs')

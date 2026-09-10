@@ -29,7 +29,7 @@ export default function TeacherDashboard() {
     fetchData()
   }, [])
 
-  const fetchData = async () => {
+  async function fetchData() {
     const { data: orderData } = await supabase.from('redemptions').select(`id, status, created_at, profiles (full_name, class_name), rewards (name, cost)`).eq('status', 'PENDING').order('created_at', { ascending: false })
     if (orderData) setOrders(orderData)
 

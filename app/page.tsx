@@ -14,6 +14,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [students, setStudents] = useState<any[]>([])
 
+  async function fetchData() {
+    const { data } = await supabase.from('profiles').select('*').order('group_number', { ascending: true })
+    if (data) setStudents(data)
+    setLoading(false)
+  }
+
   useEffect(() => {
     // Kiểm tra xem đã đăng nhập chưa
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -29,12 +35,6 @@ export default function Home() {
     })
     return () => subscription.unsubscribe()
   }, [])
-
-  const fetchData = async () => {
-    const { data } = await supabase.from('profiles').select('*').order('group_number', { ascending: true })
-    if (data) setStudents(data)
-    setLoading(false)
-  }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center font-bold text-blue-600">🚀 Đang kết nối...</div>
 

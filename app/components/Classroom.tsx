@@ -38,7 +38,7 @@ export default function Classroom({ initialStudents, userSessionId }: { initialS
 
   // Tải danh sách lớp
   useEffect(() => {
-    const fetchClasses = async () => {
+    async function fetchClasses() {
       const { data } = await supabase.from('classes').select('*').order('name', { ascending: true })
       if (data) setClasses(data)
     }

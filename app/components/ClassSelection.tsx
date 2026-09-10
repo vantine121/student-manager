@@ -14,7 +14,7 @@ export default function ClassSelection({ currentUser, onUpdate }: { currentUser:
   const [newClassName, setNewClassName] = useState('') // Cho Super Admin tạo lớp
 
   useEffect(() => {
-    const fetchClasses = async () => {
+    async function fetchClasses() {
       const { data } = await supabase.from('classes').select('*').order('name', { ascending: true })
       if (data) {
         setClasses(data)
