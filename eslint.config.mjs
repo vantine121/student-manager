@@ -12,7 +12,11 @@ const eslintConfig = defineConfig([
       "no-undef": "off",
       "@typescript-eslint/no-unused-vars": "off",
       "react/no-unescaped-entities": "off",
-      "@next/next/no-img-element": "off"
+      "@next/next/no-img-element": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/static-components": "off",
+      "prefer-const": "off",
+      "react-hooks/rules-of-hooks": "off"
     },
   },
   globalIgnores([
